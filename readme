@@ -2,19 +2,11 @@
 
 ## Video 1
 
-<<<<<<< HEAD
-<video src="./t1.gif" width="640" height="360" autoplay loop muted></video>
-=======
-<video src="https://github.com/mdhira-ai/react-fastapi-websockets/blob/master/t1.webm" width="640" height="360" autoplay loop muted></video>
->>>>>>> 3190db95838c7732bd6a84b8e5aa005365889b16
 
+<video src="https://github.com/mdhira-ai/react-fastapi-websockets/blob/master/t1.gif" width="640" height="360" autoplay loop muted></video>
 
 
 
 
 ## Video 2
-<<<<<<< HEAD
 <video src="./t2.gif" width="640" height="360" autoplay loop muted></video>
-=======
-<video src="./t2.webm" width="640" height="360" autoplay loop muted></video>
->>>>>>> 3190db95838c7732bd6a84b8e5aa005365889b16
