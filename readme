@@ -1,0 +1,13 @@
+# Video Demo
+
+## Video 1
+<video width="640" height="360" autoplay loop muted>
+    <source src="./t1.webm" type="video/webm">
+    Your browser does not support the video tag.
+</video>
+
+## Video 2
+<video width="640" height="360" autoplay loop muted>
+    <source src="./t2.webm" type="video/webm">
+    Your browser does not support the video tag.
+</video>
