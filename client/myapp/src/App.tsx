@@ -1,7 +1,7 @@
 import { memo, useEffect, useState } from "react";
 
 interface message {
-  type: "chat" | "system" | "time";
+  data_type: "chat" | "system" | "time" | "clientinfo";
   data: {
     client_id?: number;
     message?: string;
@@ -13,6 +13,8 @@ function App() {
   const [chatMessages, setchatMessages] = useState<string[]>([]);
   const [systemMessages, setsystemMessages] = useState<string[]>([]);
   const [currentTime, setcurrentTime] = useState<string>("");
+  const [totalclient, settotalclient] = useState<string>("")
+
 
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [mysockid, setmysockid] = useState<Number | null>();
@@ -35,7 +37,7 @@ function App() {
         try {
           const message: message = JSON.parse(event.data);
 
-          switch (message.type) {
+          switch (message.data_type) {
             case "chat":
               setchatMessages((prev) => [
                 ...prev,
@@ -50,6 +52,10 @@ function App() {
             case "time":
               setcurrentTime(message.data.time!);
               break;
+
+            case "clientinfo":
+              settotalclient(message.data.message!)
+
           }
         } catch (error) {
           console.error("error parsing message:", error);
@@ -79,7 +85,7 @@ function App() {
   const handleSendMessage = () => {
     if (socket && inputMessage.trim()) {
       const message = {
-        type: "chat",
+        data_type: "chat",
         message: inputMessage,
       };
 
@@ -103,6 +109,10 @@ function App() {
       <h3>
         websocket {mysockid?.toString()} server time: {currentTime}
       </h3>
+
+          <h4>
+            total client are online : {totalclient}
+          </h4>
 
       <div>
         <h3 className="font-bold">system messages</h3>

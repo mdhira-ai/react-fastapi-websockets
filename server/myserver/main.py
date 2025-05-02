@@ -4,9 +4,12 @@ import asyncio
 from typing import List
 import time
 import json
+from soc import socketio
+import uvicorn
 
 
 app = FastAPI()
+manager = socketio()
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,47 +20,22 @@ app.add_middleware(
 )
 
 
-class connectionmanager:
-    def __init__(self):
-        self.activeconn: List[WebSocket] = []
-
-    async def connect(self, websocket: WebSocket, clientid: int):
-        await websocket.accept()
-        print(f"{clientid} is connected")
-        self.clietn_id = clientid
-        self.activeconn.append(websocket)
-
-    def disconnect(self, websocket: WebSocket):
-        print(f"{self.clietn_id} is disconnected")
-        self.activeconn.remove(websocket)
-
-    async def broadcast(self, message_type: str, data: str):
-        message = json.dumps({"type": message_type, "data": data})
-
-        for connectedclient in self.activeconn:
-            await connectedclient.send_text(message)
-
-
-manager = connectionmanager()
-
-
 @app.websocket("/ws/{clientid}")
 async def mysock(websocket: WebSocket, clientid: int):
-    await manager.connect(websocket=websocket, clientid=clientid)
+    await manager.connect(websocket=websocket)
 
     try:
 
         # sending notification with "system"
         await manager.broadcast(
-            message_type="system",
+            data_type="system",
             data={"message": f"client {clientid} joined the chat"},
         )
-
 
         # sendind time to client with "time"
         time_task = asyncio.create_task(send_periodic_updates())
 
-
+        await sendclientinfo()
 
         while True:
             # coming from client
@@ -67,30 +45,29 @@ async def mysock(websocket: WebSocket, clientid: int):
 
                 # sending message with type "chat"
                 message_data = json.loads(data)
-                if message_data["type"] == "chat":
-                    await manager.broadcast('chat',{
-                        "client_id":clientid,
-                        "message": message_data["message"]
-                    })
+                if message_data["data_type"] == "chat":
+                    await manager.broadcast(
+                        data_type="chat",
+                        data={
+                            "client_id": clientid,
+                            "message": message_data["message"],
+                        },
+                    )
 
             except:
-                await manager.broadcast("chat",{
-                    "client_id":clientid,
-                    "message":data
-                })
-
+                await manager.broadcast(
+                    data_type="chat", data={"client_id": clientid, "message": data}
+                )
 
     except:
         manager.disconnect(websocket=websocket)
-        print(f"{clientid} is disconnected")
+        await sendclientinfo()
 
-
-        await manager.broadcast("system",{
-            "message":f"client {clientid} left the chat"
-        })
+        await manager.broadcast(
+            data_type="system", data={"message": f"client {clientid} left the chat"}
+        )
 
         time_task.cancel()
-
 
 
 # for time function
@@ -98,8 +75,16 @@ async def send_periodic_updates():
     while True:
         current_time = time.strftime("%H:%M:%S")
 
-        await manager.broadcast("time",{
-            "time":current_time
-        })
+        await manager.broadcast(data_type="time", data={"time": current_time})
 
         await asyncio.sleep(1)
+
+
+async def sendclientinfo():
+    await manager.broadcast(
+        data_type="clientinfo", data={"message": manager.Getclinetsinfo()}
+    )
+
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
